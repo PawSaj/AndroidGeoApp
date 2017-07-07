@@ -81,18 +81,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             sensorsData.add(new LineGraphSeries<DataPoint>());
             if (i % 3 == 0) {
                 sensorsData.get(i).setColor(Color.GREEN);
+                sensorsData.get(i).setTitle("x");
             } else if (i % 3 == 1) {
                 sensorsData.get(i).setColor(Color.BLUE);
+                sensorsData.get(i).setTitle("y");
             } else {
                 sensorsData.get(i).setColor(Color.RED);
+                sensorsData.get(i).setTitle("z");
             }
         }
     }
 
     private void setGraphOptions() {
         graph1.getViewport().setScalable(true);
+        graph1.getLegendRenderer().setVisible(true);
+
         graph2.getViewport().setScalable(true);
+        graph2.getLegendRenderer().setVisible(true);
+
         graph3.getViewport().setScalable(true);
+        graph3.getLegendRenderer().setVisible(true);
+
         for (int i = 0; i < 9; i++) {
             if (i < 3) {
                 graph1.addSeries(sensorsData.get(i));
@@ -120,42 +129,42 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public synchronized void onSensorChanged(SensorEvent event) {
         Sensor sensor = event.sensor;
         long tempDate = new Date().getTime();
-        long sensorRelay;
+        long sensorDelay;
         if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            sensorRelay = tempDate - dateAcc;
-            if (sensorRelay >= readSensorDataDelay) {
+            sensorDelay = tempDate - dateAcc;
+            if (sensorDelay >= readSensorDataDelay) {
                 textViewAccelerometer.setText("Acc: " + String.format(java.util.Locale.US, "%.2f", event.values[0]) + " "
                         + String.format(java.util.Locale.US, "%.2f", event.values[1]) + " "
                         + String.format(java.util.Locale.US, "%.2f", event.values[2]));
                 sensorsData.get(0).appendData(new DataPoint(graphLastXAccValue, event.values[0]), true, maxHistorySizeOfSensorData);
                 sensorsData.get(1).appendData(new DataPoint(graphLastXAccValue, event.values[1]), true, maxHistorySizeOfSensorData);
                 sensorsData.get(2).appendData(new DataPoint(graphLastXAccValue, event.values[2]), true, maxHistorySizeOfSensorData);
-                graphLastXAccValue += ((float) sensorRelay / (float) 1000);
+                graphLastXAccValue += ((float) sensorDelay / (float) 1000);
                 dateAcc = tempDate;
             }
 
         } else if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            sensorRelay = tempDate - dateGyro;
-            if (sensorRelay >= readSensorDataDelay) {
+            sensorDelay = tempDate - dateGyro;
+            if (sensorDelay >= readSensorDataDelay) {
                 textViewGyroscope.setText("Gyro: " + String.format(java.util.Locale.US, "%.2f", event.values[0]) + " "
                         + String.format(java.util.Locale.US, "%.2f", event.values[1]) + " "
                         + String.format(java.util.Locale.US, "%.2f", event.values[2]));
                 sensorsData.get(3).appendData(new DataPoint(graphLastXGyroValue, event.values[0]), true, maxHistorySizeOfSensorData);
                 sensorsData.get(4).appendData(new DataPoint(graphLastXGyroValue, event.values[1]), true, maxHistorySizeOfSensorData);
                 sensorsData.get(5).appendData(new DataPoint(graphLastXGyroValue, event.values[2]), true, maxHistorySizeOfSensorData);
-                graphLastXGyroValue += ((float) sensorRelay / (float) 1000);
+                graphLastXGyroValue += ((float) sensorDelay / (float) 1000);
                 dateGyro = tempDate;
             }
         } else if (sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            sensorRelay = tempDate - dateMag;
-            if (sensorRelay >= readSensorDataDelay) {
+            sensorDelay = tempDate - dateMag;
+            if (sensorDelay >= readSensorDataDelay) {
                 textViewMagnetometer.setText("Mag: " + String.format(java.util.Locale.US, "%.2f", event.values[0]) + " "
                         + String.format(java.util.Locale.US, "%.2f", event.values[1]) + " "
                         + String.format(java.util.Locale.US, "%.2f", event.values[2]));
                 sensorsData.get(6).appendData(new DataPoint(graphLastXMagValue, event.values[0]), true, maxHistorySizeOfSensorData);
                 sensorsData.get(7).appendData(new DataPoint(graphLastXMagValue, event.values[1]), true, maxHistorySizeOfSensorData);
                 sensorsData.get(8).appendData(new DataPoint(graphLastXMagValue, event.values[2]), true, maxHistorySizeOfSensorData);
-                graphLastXGyroValue += ((float) sensorRelay / (float) 1000);
+                graphLastXMagValue += ((float) sensorDelay / (float) 1000);
                 dateMag = tempDate;
             }
 
