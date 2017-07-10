@@ -11,6 +11,7 @@ public class DisplayMessageActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_display_message);
+        getSupportActionBar().hide();
 
         //Get the inted that start this activity and extract the string
         Intent intent = getIntent();
