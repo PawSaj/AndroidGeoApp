@@ -9,11 +9,13 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
 
+import com.google.android.gms.maps.model.LatLng;
+
 /**
  * Created by Paweł Sajnóg on 2017-07-10.
  */
 
-public class GPSTracking extends Service {
+public class GPSTracking extends Service implements LocationListener {
     // Acquire a reference to the system Location Manager
     LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
@@ -28,6 +30,8 @@ public class GPSTracking extends Service {
         }
 
         private void makeUseOfNewLocation(Location location) {
+            LatLng newPoint = new LatLng(location.getLatitude(), location.getLongitude());
+
         }
 
         public void onProviderEnabled(String provider) {
@@ -54,5 +58,25 @@ public class GPSTracking extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
     }
 }

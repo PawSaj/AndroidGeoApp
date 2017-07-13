@@ -2,5 +2,4 @@
     <string name="app_name">Moja pierwsza aplikacja</string>
     <string name="edit_message">Wpisz wiadomość</string>
     <string name="button_send">Wyślij</string>
-    <string name="google_android_map_api_key"> Map API key </string>
 </resources>

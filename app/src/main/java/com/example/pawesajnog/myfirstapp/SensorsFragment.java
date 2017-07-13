@@ -29,6 +29,7 @@ import java.util.List;
 public class SensorsFragment extends Fragment implements SensorEventListener {
 
     private Activity mActivity;
+    private View view;
 
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
@@ -57,7 +58,7 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater
+        view = inflater
                 .inflate(R.layout.fragment_graphs, container, false);
         return view;
     }
@@ -72,9 +73,9 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
         mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
-        graph1 = (GraphView) getView().findViewById(R.id.graph1);
-        graph2 = (GraphView) getView().findViewById(R.id.graph2);
-        graph3 = (GraphView) getView().findViewById(R.id.graph3);
+        graph1 = (GraphView) view.findViewById(R.id.graph1);
+        graph2 = (GraphView) view.findViewById(R.id.graph2);
+        graph3 = (GraphView) view.findViewById(R.id.graph3);
         sensorsData = new LinkedList<>();
 
         setSeriesOptions();
@@ -101,13 +102,20 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
     private void setGraphOptions() {
         graph1.getViewport().setScalable(true);
         graph1.getLegendRenderer().setVisible(true);
+        graph1.setTitle("Accelerometer");
+        graph1.setPadding(5,5,5,5);
 
         graph2.getViewport().setScalable(true);
         graph2.getLegendRenderer().setVisible(true);
+        graph2.setTitle("Gyroscope");
+        graph2.setPadding(5,5,5,5);
 
         graph3.getViewport().setScalable(true);
         graph3.getLegendRenderer().setVisible(true);
+        graph3.setTitle("Magnetometer");
+        graph3.setPadding(5,5,5,5);
 
+        //add series to graphs
         for (int i = 0; i < 9; i++) {
             if (i < 3) {
                 graph1.addSeries(sensorsData.get(i));
