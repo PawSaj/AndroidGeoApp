@@ -1,7 +1,7 @@
 package com.example.pawesajnog.myfirstapp;
 
 import android.app.Activity;
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -51,6 +51,7 @@ public class MapViewFragment extends Fragment
     // Keys for storing activity state.
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
+
 
     @Override
     public void onAttach(Context context) {
@@ -115,6 +116,7 @@ public class MapViewFragment extends Fragment
     public void onDestroy() {
         super.onDestroy();
         mMapView.onDestroy();
+        mGoogleApiClient.disconnect();
     }
 
     @Override
@@ -168,17 +170,7 @@ public class MapViewFragment extends Fragment
         }
 
         // Set the map's camera position to the current location of the device.
-        if (mCameraPosition != null) {
-            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
-        } else if (mLastKnownLocation != null) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(mLastKnownLocation.getLatitude(),
-                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
-        } else {
-            Log.d(TAG, "Current location is null. Using defaults.");
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, 0));
-            mMap.getUiSettings().setMyLocationButtonEnabled(false);
-        }
+        updateCamera(mLastKnownLocation);
     }
 
     @Override
@@ -197,7 +189,6 @@ public class MapViewFragment extends Fragment
                 }
             }
         }
-
     }
 
     private void updateLocationUI() {
@@ -226,6 +217,20 @@ public class MapViewFragment extends Fragment
             mMap.setMyLocationEnabled(false);
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
             mLastKnownLocation = null;
+        }
+    }
+
+    public void updateCamera(Location mLastKnownLocation) {
+        if (mCameraPosition != null) {
+            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
+        } else if (mLastKnownLocation != null) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(mLastKnownLocation.getLatitude(),
+                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+        } else {
+            Log.d(TAG, "Current location is null. Using defaults.");
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, 0));
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
     }
 }

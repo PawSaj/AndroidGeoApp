@@ -1,7 +1,7 @@
 package com.example.pawesajnog.myfirstapp;
 
 import android.app.Activity;
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.graphics.Color;
 import android.hardware.Sensor;
@@ -22,9 +22,6 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Created by Paweł Sajnóg on 2017-07-10.
- */
 
 public class SensorsFragment extends Fragment implements SensorEventListener {
 
@@ -103,17 +100,17 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
         graph1.getViewport().setScalable(true);
         graph1.getLegendRenderer().setVisible(true);
         graph1.setTitle("Accelerometer");
-        graph1.setPadding(5,5,5,5);
+        graph1.setPadding(5, 5, 5, 5);
 
         graph2.getViewport().setScalable(true);
         graph2.getLegendRenderer().setVisible(true);
         graph2.setTitle("Gyroscope");
-        graph2.setPadding(5,5,5,5);
+        graph2.setPadding(5, 5, 5, 5);
 
         graph3.getViewport().setScalable(true);
         graph3.getLegendRenderer().setVisible(true);
         graph3.setTitle("Magnetometer");
-        graph3.setPadding(5,5,5,5);
+        graph3.setPadding(5, 5, 5, 5);
 
         //add series to graphs
         for (int i = 0; i < 9; i++) {
@@ -128,12 +125,14 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void onSensorChanged(SensorEvent event) {
         Sensor sensor = event.sensor;
         long tempDate = new Date().getTime();
         long sensorDelay;
         int readSensorDataDelay = 500;
         int maxHistorySizeOfSensorData = 40;
+
         if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             sensorDelay = tempDate - dateAcc;
             if (sensorDelay >= readSensorDataDelay) {
