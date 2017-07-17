@@ -1,6 +1,7 @@
 package com.example.pawesajnog.myfirstapp;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -15,10 +16,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -26,10 +23,11 @@ import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.PolylineOptions;
 
-public class MapViewFragment extends Fragment
-        implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+import java.util.ArrayList;
+
+public class MapViewFragment extends Fragment {
 
     private static final String TAG = MapViewFragment.class.getSimpleName();
     private Activity mActivity;
@@ -42,8 +40,6 @@ public class MapViewFragment extends Fragment
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
 
-    private GoogleApiClient mGoogleApiClient;
-
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
     private Location mLastKnownLocation;
@@ -51,6 +47,9 @@ public class MapViewFragment extends Fragment
     // Keys for storing activity state.
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
+
+    private ArrayList<LatLng> points;
+
 
 
     @Override
@@ -74,7 +73,7 @@ public class MapViewFragment extends Fragment
             e.printStackTrace();
         }
 
-
+        points = new ArrayList<>();
 
         return rootView;
     }
@@ -89,15 +88,14 @@ public class MapViewFragment extends Fragment
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
 
-        // Build the Play services client for use by the Fused Location Provider and the Places API.
-        // Use the addApi() method to request the Google Places API and the Fused Location Provider.
-        mGoogleApiClient = new GoogleApiClient.Builder(mActivity)
-                .addConnectionCallbacks(this)
-                .addApi(LocationServices.API)
-                .addApi(Places.GEO_DATA_API)
-                .addApi(Places.PLACE_DETECTION_API)
-                .build();
-        mGoogleApiClient.connect();
+        mMapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                mMap = googleMap;
+
+                getDeviceLocation();
+            }
+        });
     }
 
     @Override
@@ -116,38 +114,12 @@ public class MapViewFragment extends Fragment
     public void onDestroy() {
         super.onDestroy();
         mMapView.onDestroy();
-        mGoogleApiClient.disconnect();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
         mMapView.onLowMemory();
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        mMapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(GoogleMap googleMap) {
-                mMap = googleMap;
-
-                updateLocationUI();
-
-                getDeviceLocation();
-            }
-        });
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        Log.d(TAG, "Play services connection suspended");
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.d(TAG, "Play services connection failed: ConnectionResult.getErrorCode() = "
-                + connectionResult.getErrorCode());
     }
 
     /**
@@ -164,13 +136,8 @@ public class MapViewFragment extends Fragment
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
 
-        if (mLocationPermissionGranted) {
-            mLastKnownLocation = LocationServices.FusedLocationApi
-                    .getLastLocation(mGoogleApiClient);
-        }
-
         // Set the map's camera position to the current location of the device.
-        updateCamera(mLastKnownLocation);
+        updateLocation(mLastKnownLocation);
     }
 
     @Override
@@ -184,22 +151,17 @@ public class MapViewFragment extends Fragment
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
-                    updateLocationUI();
                     getDeviceLocation();
                 }
             }
         }
     }
 
-    private void updateLocationUI() {
+    public void turnOnLocationUI() {
         if (mMap == null) {
             return;
         }
-    /*
-     * Request location permission, so that we can get the location of the
-     * device. The result of the permission request is handled by a callback,
-     * onRequestPermissionsResult.
-     */
+
         if (ContextCompat.checkSelfPermission(mActivity.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -220,17 +182,59 @@ public class MapViewFragment extends Fragment
         }
     }
 
-    public void updateCamera(Location mLastKnownLocation) {
+    public void updateLocation(Location mLastKnownLocation) {
         if (mCameraPosition != null) {
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
         } else if (mLastKnownLocation != null) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                     new LatLng(mLastKnownLocation.getLatitude(),
                             mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+            double latitude = mLastKnownLocation.getLatitude();
+            double longitude = mLastKnownLocation.getLongitude();
+            LatLng latLng = new LatLng(latitude, longitude); //you already have this
+
+            points.add(latLng); //added
+
+            redrawLine();
         } else {
             Log.d(TAG, "Current location is null. Using defaults.");
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, 0));
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
     }
+
+    private void redrawLine() {
+
+        mMap.clear();  //clears all Markers and Polylines
+
+        PolylineOptions options = new PolylineOptions().width(5).color(Color.BLUE).geodesic(true);
+        for (int i = 0; i < points.size(); i++) {
+            LatLng point = points.get(i);
+            options.add(point);
+        }
+        mMap.addPolyline(options); //add Polyline
+    }
+
+    public void turnOffLocationUI() {
+        if (mMap == null) {
+            return;
+        }
+
+        if (ContextCompat.checkSelfPermission(mActivity.getApplicationContext(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mLocationPermissionGranted = true;
+        } else {
+            ActivityCompat.requestPermissions(mActivity,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+        }
+
+        mMap.setMyLocationEnabled(false);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        mLastKnownLocation = null;
+        mMap.clear();
+        points.clear();
+    }
+
 }

@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -99,18 +100,33 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
     private void setGraphOptions() {
         graph1.getViewport().setScalable(true);
         graph1.getLegendRenderer().setVisible(true);
+        graph1.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
         graph1.setTitle("Accelerometer");
         graph1.setPadding(5, 5, 5, 5);
+        // set manual X bounds
+        graph1.getViewport().setXAxisBoundsManual(true);
+        graph1.getViewport().setMinX(0.0);
+        graph1.getViewport().setMaxX(60.0);
 
         graph2.getViewport().setScalable(true);
         graph2.getLegendRenderer().setVisible(true);
+        graph2.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
         graph2.setTitle("Gyroscope");
         graph2.setPadding(5, 5, 5, 5);
+        // set manual X bounds
+        graph2.getViewport().setXAxisBoundsManual(true);
+        graph2.getViewport().setMinX(0.0);
+        graph2.getViewport().setMaxX(60.0);
 
         graph3.getViewport().setScalable(true);
         graph3.getLegendRenderer().setVisible(true);
+        graph3.getLegendRenderer().setAlign(LegendRenderer.LegendAlign.TOP);
         graph3.setTitle("Magnetometer");
         graph3.setPadding(5, 5, 5, 5);
+        // set manual X bounds
+        graph3.getViewport().setXAxisBoundsManual(true);
+        graph3.getViewport().setMinX(0.0);
+        graph3.getViewport().setMaxX(60.0);
 
         //add series to graphs
         for (int i = 0; i < 9; i++) {
@@ -131,14 +147,16 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
         long tempDate = new Date().getTime();
         long sensorDelay;
         int readSensorDataDelay = 500;
-        int maxHistorySizeOfSensorData = 40;
+        int maxHistorySizeOfSensorData = 720;
+        boolean autoScrollingFlag;
 
         if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             sensorDelay = tempDate - dateAcc;
             if (sensorDelay >= readSensorDataDelay) {
-                sensorsData.get(0).appendData(new DataPoint(graphLastXAccValue, event.values[0]), true, maxHistorySizeOfSensorData);
-                sensorsData.get(1).appendData(new DataPoint(graphLastXAccValue, event.values[1]), true, maxHistorySizeOfSensorData);
-                sensorsData.get(2).appendData(new DataPoint(graphLastXAccValue, event.values[2]), true, maxHistorySizeOfSensorData);
+                autoScrollingFlag = setAutoScrollingFlag(graphLastXAccValue);
+                sensorsData.get(0).appendData(new DataPoint(graphLastXAccValue, event.values[0]), autoScrollingFlag, maxHistorySizeOfSensorData);
+                sensorsData.get(1).appendData(new DataPoint(graphLastXAccValue, event.values[1]), autoScrollingFlag, maxHistorySizeOfSensorData);
+                sensorsData.get(2).appendData(new DataPoint(graphLastXAccValue, event.values[2]), autoScrollingFlag, maxHistorySizeOfSensorData);
                 graphLastXAccValue += ((float) sensorDelay / (float) 1000);
                 dateAcc = tempDate;
             }
@@ -146,23 +164,29 @@ public class SensorsFragment extends Fragment implements SensorEventListener {
         } else if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
             sensorDelay = tempDate - dateGyro;
             if (sensorDelay >= readSensorDataDelay) {
-                sensorsData.get(3).appendData(new DataPoint(graphLastXGyroValue, event.values[0]), true, maxHistorySizeOfSensorData);
-                sensorsData.get(4).appendData(new DataPoint(graphLastXGyroValue, event.values[1]), true, maxHistorySizeOfSensorData);
-                sensorsData.get(5).appendData(new DataPoint(graphLastXGyroValue, event.values[2]), true, maxHistorySizeOfSensorData);
+                autoScrollingFlag = setAutoScrollingFlag(graphLastXAccValue);
+                sensorsData.get(3).appendData(new DataPoint(graphLastXGyroValue, event.values[0]), autoScrollingFlag, maxHistorySizeOfSensorData);
+                sensorsData.get(4).appendData(new DataPoint(graphLastXGyroValue, event.values[1]), autoScrollingFlag, maxHistorySizeOfSensorData);
+                sensorsData.get(5).appendData(new DataPoint(graphLastXGyroValue, event.values[2]), autoScrollingFlag, maxHistorySizeOfSensorData);
                 graphLastXGyroValue += ((float) sensorDelay / (float) 1000);
                 dateGyro = tempDate;
             }
         } else if (sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
             sensorDelay = tempDate - dateMag;
             if (sensorDelay >= readSensorDataDelay) {
-                sensorsData.get(6).appendData(new DataPoint(graphLastXMagValue, event.values[0]), true, maxHistorySizeOfSensorData);
-                sensorsData.get(7).appendData(new DataPoint(graphLastXMagValue, event.values[1]), true, maxHistorySizeOfSensorData);
-                sensorsData.get(8).appendData(new DataPoint(graphLastXMagValue, event.values[2]), true, maxHistorySizeOfSensorData);
+                autoScrollingFlag = setAutoScrollingFlag(graphLastXAccValue);
+                sensorsData.get(6).appendData(new DataPoint(graphLastXMagValue, event.values[0]), autoScrollingFlag, maxHistorySizeOfSensorData);
+                sensorsData.get(7).appendData(new DataPoint(graphLastXMagValue, event.values[1]), autoScrollingFlag, maxHistorySizeOfSensorData);
+                sensorsData.get(8).appendData(new DataPoint(graphLastXMagValue, event.values[2]), autoScrollingFlag, maxHistorySizeOfSensorData);
                 graphLastXMagValue += ((float) sensorDelay / (float) 1000);
                 dateMag = tempDate;
             }
 
         }
+    }
+
+    private boolean setAutoScrollingFlag(float graphLastXValue) {
+        return graphLastXValue >= 60;
     }
 
     @Override

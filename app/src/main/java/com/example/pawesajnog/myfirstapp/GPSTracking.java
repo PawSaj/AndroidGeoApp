@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -22,8 +23,19 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 /**
- * aa
+ *
  * Created by Paweł Sajnóg on 2017-07-10.
  */
 
@@ -37,6 +49,7 @@ public class GPSTracking extends Service
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
 
+    private final String filename = "gps_tracking_data.txt";
 
     Messenger replyMessanger;
 
@@ -75,6 +88,51 @@ public class GPSTracking extends Service
     public void onCreate() {
         super.onCreate();
         setLocationLocationRequest();
+        //readFile();
+        openFile();
+    }
+
+    private void openFile() {
+        String root = Environment.getExternalStorageDirectory().toString();
+        File myDir = new File(root + "/saved_location");
+        myDir.mkdirs();
+        File file = new File(myDir, filename);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.ENGLISH);
+        Date date = new Date();
+        try {
+        } catch (IOException e) {
+            Log.d(TAG, "Error while creating or open internal storage file");
+            Toast.makeText(getApplicationContext(), "Error while creating or open internal storage file! The data will not be saved!", Toast.LENGTH_LONG).show();
+        }
+        try {
+        } catch (IOException e) {
+            Log.d(TAG, "Error while creating or open external storage file");
+            Toast.makeText(getApplicationContext(), "Error while creating or open external storage file! The data will not be saved!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void readFile() {
+        try {
+            FileInputStream in = openFileInput(filename);
+            InputStreamReader inputStreamReader = new InputStreamReader(in);
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                sb.append(line);
+            }
+            Toast.makeText(getApplicationContext(), sb.toString(), Toast.LENGTH_LONG).show();
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i("LocalService", "Received start id " + startId + ": " + intent);
+        return START_NOT_STICKY;
     }
 
     @Override
@@ -83,6 +141,18 @@ public class GPSTracking extends Service
         super.onDestroy();
         Toast.makeText(getApplicationContext(), "Tracking stoped!", Toast.LENGTH_SHORT).show();
         this.mGoogleApiClient.disconnect();
+        try {
+            }
+        } catch (IOException e) {
+            Log.d(TAG, "Error while closing internal storage file");
+            Toast.makeText(getApplicationContext(), "Error while closing internal storage file! The data will not be saved!", Toast.LENGTH_LONG).show();
+        }
+        try {
+            }
+        } catch (IOException e) {
+            Log.d(TAG, "Error while closing external storage file");
+            Toast.makeText(getApplicationContext(), "Error while closing external storage file! The data will not be saved!", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void setLocationLocationRequest() {
@@ -128,13 +198,31 @@ public class GPSTracking extends Service
     @Override
     public void onLocationChanged(Location location) {
         // After your desired interval This api will give you the Location Object.
-
+        saveLocationToInternalStorage(location);
+        saveLocationToExternalStorage(location);
         sendLocation(location);
     }
 
-    private void sendLocation(Location location) {
-        // do stuff
+    private void saveLocationToExternalStorage(Location location) {
 
+        String locationData = "\n" + location.getLatitude() + " " + location.getLongitude();
+        try {
+        } catch (IOException e) {
+            Log.d(TAG, "Error while writting external storage file");
+            Toast.makeText(getApplicationContext(), "Error while writing external storage file! The data will not be saved!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void saveLocationToInternalStorage(Location location) {
+        String locationData = "\n" + location.getLatitude() + " " + location.getLongitude();
+        try {
+        } catch (IOException e) {
+            Log.d(TAG, "Error while writting internal storage file");
+            Toast.makeText(getApplicationContext(), "Error while writing internal storage file! The data will not be saved!", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void sendLocation(Location location) {
         if (replyMessanger != null)
             try {
                 Message message = Message.obtain(null, MainActivity.MSG_LOCATION_DATA, location);

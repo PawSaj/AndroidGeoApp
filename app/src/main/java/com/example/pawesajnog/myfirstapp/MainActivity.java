@@ -14,7 +14,6 @@ import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -41,19 +40,12 @@ public class MainActivity extends AppCompatActivity {
      */
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
-            // This is called when the connection with the service has been
-            // established, giving us the object we can use to
-            // interact with the service.  We are communicating with the
-            // service using a Messenger, so here we get a client-side
-            // representation of that from the raw IBinder object.
             mService = new Messenger(service);
             mBound = true;
             sayHello();
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            // This is called when the connection with the service has been
-            // unexpectedly disconnected -- that is, its process crashed.
             mService = null;
             mBound = false;
         }
@@ -64,6 +56,11 @@ public class MainActivity extends AppCompatActivity {
     final Messenger mMessenger = new Messenger(new MainActivity.IncomingHandler());
 
     Switch mSwitch;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,13 +75,17 @@ public class MainActivity extends AppCompatActivity {
         mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
+                    startService(new Intent(mActivity, GPSTracking.class));
                     bindService(new Intent(mActivity, GPSTracking.class), mConnection,
                             Context.BIND_AUTO_CREATE);
+                    fragment.turnOnLocationUI();
                 } else {
                     if (mBound) {
                         unbindService(mConnection);
                         mBound = false;
                     }
+                    stopService(new Intent(mActivity, GPSTracking.class));
+                    fragment.turnOffLocationUI();
                 }
             }
         });
@@ -118,8 +119,8 @@ public class MainActivity extends AppCompatActivity {
             switch (msg.what) {
                 case MainActivity.MSG_LOCATION_DATA:
                     Location location = (Location) msg.obj;
-                    Toast.makeText(getApplicationContext(), (String.valueOf(location.getLatitude()) + "\n" + String.valueOf(location.getLongitude())), Toast.LENGTH_SHORT).show();
-                    fragment.updateCamera(location);
+                    //Toast.makeText(getApplicationContext(), (String.valueOf(location.getLatitude()) + "\n" + String.valueOf(location.getLongitude())), Toast.LENGTH_SHORT).show();
+                    fragment.updateLocation(location);
                     break;
                 default:
                     super.handleMessage(msg);
