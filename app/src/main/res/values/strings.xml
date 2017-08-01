@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">My First App</string>
+    <string name="app_name">GPS tracker</string>
     <string name="edit_message">Enter the message</string>
     <string name="button_send">Send</string>
     <string name="tracking">GPS tracking</string>

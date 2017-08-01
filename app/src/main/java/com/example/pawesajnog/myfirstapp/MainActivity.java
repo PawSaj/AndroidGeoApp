@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Handler;
 import android.os.IBinder;
@@ -12,16 +13,18 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.CompoundButton;
 import android.widget.Switch;
-import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final int MSG_SAY_HELLO = 1;
     public static final int MSG_LOCATION_DATA = 2;
+    private static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 2;
 
     MapViewFragment fragment;
 
@@ -60,6 +63,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+
+        if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+        }
     }
 
     @Override

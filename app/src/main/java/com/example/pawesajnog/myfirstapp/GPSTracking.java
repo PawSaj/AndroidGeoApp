@@ -35,7 +35,7 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Created by Paweł Sajnóg on 2017-07-10.
+ * Created by Paweł Sajnóg .
  */
 
 public class GPSTracking extends Service
@@ -48,7 +48,7 @@ public class GPSTracking extends Service
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
 
-    private final String filename = "gps_tracking_data.txt";
+    private String filename;
     private FileOutputStream outputStreamForInternalStorage;
     private FileOutputStream outputStreamForExternalStorage;
 
@@ -90,16 +90,15 @@ public class GPSTracking extends Service
         super.onCreate();
         setLocationLocationRequest();
         //readFile();
-        openFile();
+        openFiles();
     }
 
-    private void openFile() {
-        String root = Environment.getExternalStorageDirectory().toString();
-        File myDir = new File(root + "/saved_location");
-        myDir.mkdirs();
-        File file = new File(myDir, filename);
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.ENGLISH);
+    private void openFiles() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd HH_mm_ss", Locale.ENGLISH);
         Date date = new Date();
+        filename = dateFormat.format(date) +".txt";
+        dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.ENGLISH);
+
         try {
             outputStreamForInternalStorage = openFileOutput(filename, MODE_APPEND);
             outputStreamForInternalStorage.write(dateFormat.format(date).getBytes());
@@ -107,13 +106,33 @@ public class GPSTracking extends Service
             Log.d(TAG, "Error while creating or open internal storage file");
             Toast.makeText(getApplicationContext(), "Error while creating or open internal storage file! The data will not be saved!", Toast.LENGTH_LONG).show();
         }
-        try {
-            outputStreamForExternalStorage = new FileOutputStream(file, true);
-            outputStreamForExternalStorage.write(dateFormat.format(date).getBytes());
-        } catch (IOException e) {
-            Log.d(TAG, "Error while creating or open external storage file");
-            Toast.makeText(getApplicationContext(), "Error while creating or open external storage file! The data will not be saved!", Toast.LENGTH_LONG).show();
+
+        if(isExternalStorageWritable()) {
+            String root = Environment.getExternalStorageDirectory().toString();
+            File myDir = new File(root + "/saved_location");
+            myDir.mkdirs();
+            File file = new File(myDir, filename);
+            try {
+                outputStreamForExternalStorage = new FileOutputStream(file, true);
+                outputStreamForExternalStorage.write(dateFormat.format(date).getBytes());
+            } catch (IOException e) {
+                Log.d(TAG, "Error while creating or open external storage file");
+                Toast.makeText(getApplicationContext(), "Error while creating or open external storage file! The data will not be saved!", Toast.LENGTH_LONG).show();
+            }
         }
+    }
+
+    /* Checks if external storage is available for read and write */
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        return Environment.MEDIA_MOUNTED.equals(state);
+    }
+
+    /* Checks if external storage is available to at least read */
+    public boolean isExternalStorageReadable() {
+        String state = Environment.getExternalStorageState();
+        return Environment.MEDIA_MOUNTED.equals(state) ||
+                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
     }
 
     private void readFile() {
