@@ -1,193 +1,143 @@
 package com.example.pawesajnog.myfirstapp;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
+import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
+public class MainActivity extends AppCompatActivity {
 
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+    public static final int MSG_SAY_HELLO = 1;
+    public static final int MSG_LOCATION_DATA = 2;
+    private static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 2;
 
+    MapViewFragment fragment;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+    /**
+     * Messenger for communicating with the service.
+     */
+    Messenger mService;
 
+    /**
+     * Flag indicating whether we have called bind on the service.
+     */
+    boolean mBound;
 
-    public static final String EXTRA_MESSAGE = "com.example.myfirstapp.MESSAGE";
-    private final int readSensorDataDelay = 500; // in milliseconds
-    private final int maxHistorySizeOfSensorData = 40; //number of measurement
-    private SensorManager mSensorManager;
-    private Sensor mAccelerometer;
-    private Sensor mGyroscope;
-    private Sensor mMagnetometer;
+    /**
+     * Class for interacting with the main interface of the service.
+     */
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            mService = new Messenger(service);
+            mBound = true;
+            sayHello();
+        }
 
-    private TextView textViewAccelerometer;
-    private TextView textViewGyroscope;
-    private TextView textViewMagnetometer;
+        public void onServiceDisconnected(ComponentName className) {
+            mService = null;
+            mBound = false;
+        }
+    };
+    /**
+     * Target we publish for clients to send messages to IncomingHandler.
+     */
+    final Messenger mMessenger = new Messenger(new MainActivity.IncomingHandler());
 
-    private GraphView graph1;
-    private GraphView graph2;
-    private GraphView graph3;
-    private List<LineGraphSeries> sensorsData;
+    Switch mSwitch;
 
-    private float graphLastXAccValue = 0.0f;
-    private float graphLastXGyroValue = 0.0f;
-    private float graphLastXMagValue = 0.0f;
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-    private long dateAcc = new Date().getTime();
-    private long dateGyro = new Date().getTime();
-    private long dateMag = new Date().getTime();
-
+        if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        fragment = (MapViewFragment) getSupportFragmentManager().findFragmentById(R.id.locationFragment);
 
-        textViewAccelerometer = (TextView) findViewById(R.id.textView3);
-        textViewGyroscope = (TextView) findViewById(R.id.textView4);
-        textViewMagnetometer = (TextView) findViewById(R.id.textView5);
+        mSwitch = (Switch) findViewById(R.id.GPS_switch);
+        final Activity mActivity = this;
 
-        graph1 = (GraphView) findViewById(R.id.graph1);
-        graph2 = (GraphView) findViewById(R.id.graph2);
-        graph3 = (GraphView) findViewById(R.id.graph3);
-        sensorsData = new LinkedList<LineGraphSeries>();
-
-        setSeriesOptions();
-
-        setGraphOptions();
-
+        mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    startService(new Intent(mActivity, GPSTracking.class));
+                    bindService(new Intent(mActivity, GPSTracking.class), mConnection,
+                            Context.BIND_AUTO_CREATE);
+                    fragment.turnOnLocationUI();
+                } else {
+                    if (mBound) {
+                        unbindService(mConnection);
+                        mBound = false;
+                    }
+                    stopService(new Intent(mActivity, GPSTracking.class));
+                    fragment.turnOffLocationUI();
+                }
+            }
+        });
     }
 
-    private void setSeriesOptions() {
-        for (int i = 0; i < 9; i++) {
-            sensorsData.add(new LineGraphSeries<DataPoint>());
-            if (i % 3 == 0) {
-                sensorsData.get(i).setColor(Color.GREEN);
-                sensorsData.get(i).setTitle("x");
-            } else if (i % 3 == 1) {
-                sensorsData.get(i).setColor(Color.BLUE);
-                sensorsData.get(i).setTitle("y");
-            } else {
-                sensorsData.get(i).setColor(Color.RED);
-                sensorsData.get(i).setTitle("z");
-            }
+    private void sayHello() {
+        if (!mBound) {
+            return;
         }
-    }
 
-    private void setGraphOptions() {
-        graph1.getViewport().setScalable(true);
-        graph1.getLegendRenderer().setVisible(true);
-
-        graph2.getViewport().setScalable(true);
-        graph2.getLegendRenderer().setVisible(true);
-
-        graph3.getViewport().setScalable(true);
-        graph3.getLegendRenderer().setVisible(true);
-
-        for (int i = 0; i < 9; i++) {
-            if (i < 3) {
-                graph1.addSeries(sensorsData.get(i));
-            } else if (i < 6) {
-                graph2.addSeries(sensorsData.get(i));
-            } else {
-                graph3.addSeries(sensorsData.get(i));
-            }
-        }
-    }
-
-    //Called when the user taps Send button
-    public void sendMessage(View view) {
-        Intent intent = new Intent(this, DisplayMessageActivity.class);
-        Intent mServiceIntent = new Intent(this, BackgroundService.class);
-        EditText editText = (EditText) findViewById(R.id.editText);
-        String message = editText.getText().toString();
-        intent.putExtra(EXTRA_MESSAGE, message);
-        mServiceIntent.putExtra(EXTRA_MESSAGE, message);
-        startActivity(intent);
-        startService(mServiceIntent);
-    }
-
-    @Override
-    public synchronized void onSensorChanged(SensorEvent event) {
-        Sensor sensor = event.sensor;
-        long tempDate = new Date().getTime();
-        long sensorDelay;
-        if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            sensorDelay = tempDate - dateAcc;
-            if (sensorDelay >= readSensorDataDelay) {
-                textViewAccelerometer.setText("Acc: " + String.format(java.util.Locale.US, "%.2f", event.values[0]) + " "
-                        + String.format(java.util.Locale.US, "%.2f", event.values[1]) + " "
-                        + String.format(java.util.Locale.US, "%.2f", event.values[2]));
-                sensorsData.get(0).appendData(new DataPoint(graphLastXAccValue, event.values[0]), true, maxHistorySizeOfSensorData);
-                sensorsData.get(1).appendData(new DataPoint(graphLastXAccValue, event.values[1]), true, maxHistorySizeOfSensorData);
-                sensorsData.get(2).appendData(new DataPoint(graphLastXAccValue, event.values[2]), true, maxHistorySizeOfSensorData);
-                graphLastXAccValue += ((float) sensorDelay / (float) 1000);
-                dateAcc = tempDate;
-            }
-
-        } else if (sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-            sensorDelay = tempDate - dateGyro;
-            if (sensorDelay >= readSensorDataDelay) {
-                textViewGyroscope.setText("Gyro: " + String.format(java.util.Locale.US, "%.2f", event.values[0]) + " "
-                        + String.format(java.util.Locale.US, "%.2f", event.values[1]) + " "
-                        + String.format(java.util.Locale.US, "%.2f", event.values[2]));
-                sensorsData.get(3).appendData(new DataPoint(graphLastXGyroValue, event.values[0]), true, maxHistorySizeOfSensorData);
-                sensorsData.get(4).appendData(new DataPoint(graphLastXGyroValue, event.values[1]), true, maxHistorySizeOfSensorData);
-                sensorsData.get(5).appendData(new DataPoint(graphLastXGyroValue, event.values[2]), true, maxHistorySizeOfSensorData);
-                graphLastXGyroValue += ((float) sensorDelay / (float) 1000);
-                dateGyro = tempDate;
-            }
-        } else if (sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            sensorDelay = tempDate - dateMag;
-            if (sensorDelay >= readSensorDataDelay) {
-                textViewMagnetometer.setText("Mag: " + String.format(java.util.Locale.US, "%.2f", event.values[0]) + " "
-                        + String.format(java.util.Locale.US, "%.2f", event.values[1]) + " "
-                        + String.format(java.util.Locale.US, "%.2f", event.values[2]));
-                sensorsData.get(6).appendData(new DataPoint(graphLastXMagValue, event.values[0]), true, maxHistorySizeOfSensorData);
-                sensorsData.get(7).appendData(new DataPoint(graphLastXMagValue, event.values[1]), true, maxHistorySizeOfSensorData);
-                sensorsData.get(8).appendData(new DataPoint(graphLastXMagValue, event.values[2]), true, maxHistorySizeOfSensorData);
-                graphLastXMagValue += ((float) sensorDelay / (float) 1000);
-                dateMag = tempDate;
-            }
-
+        // Create and send a message to the service, using a supported 'what' value
+        Message msg = Message.obtain(null, MainActivity.MSG_SAY_HELLO, 0, 0);
+        msg.replyTo = mMessenger;
+        try {
+            mService.send(msg);
+        } catch (RemoteException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
+        fragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
-        mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_NORMAL);
+    class IncomingHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MainActivity.MSG_LOCATION_DATA:
+                    Location location = (Location) msg.obj;
+                    //Toast.makeText(getApplicationContext(), (String.valueOf(location.getLatitude()) + "\n" + String.valueOf(location.getLongitude())), Toast.LENGTH_SHORT).show();
+                    fragment.updateLocation(location);
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+        }
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mSensorManager.unregisterListener(this);
-    }
+
 }
