@@ -1,4 +1,4 @@
-package com.example.pawesajnog.myfirstapp;
+package com.example.pawesajnog.myfirstapp.activities;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -17,30 +17,39 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.Toast;
+
+import com.example.pawesajnog.myfirstapp.R;
+import com.example.pawesajnog.myfirstapp.fragments.MapViewFragment;
+import com.example.pawesajnog.myfirstapp.services.GPSTracking;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+import static com.example.pawesajnog.myfirstapp.StaticValues.MSG_LOCATION_DATA;
+import static com.example.pawesajnog.myfirstapp.StaticValues.MSG_SAY_HELLO;
+import static com.example.pawesajnog.myfirstapp.StaticValues.MY_APP;
+import static com.example.pawesajnog.myfirstapp.StaticValues.PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final int MSG_SAY_HELLO = 1;
-    public static final int MSG_LOCATION_DATA = 2;
-    private static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 2;
-
     MapViewFragment fragment;
 
-    /**
-     * Messenger for communicating with the service.
-     */
     Messenger mService;
-
-    /**
-     * Flag indicating whether we have called bind on the service.
-     */
     boolean mBound;
 
-    /**
-     * Class for interacting with the main interface of the service.
-     */
+    Context mContext;
+    Switch mLoginSwitch;
+    Switch mGPSTrackingSwitch;
+
+    final Messenger mMessenger = new Messenger(new MainActivity.IncomingHandler());
+
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             mService = new Messenger(service);
@@ -53,16 +62,12 @@ public class MainActivity extends AppCompatActivity {
             mBound = false;
         }
     };
-    /**
-     * Target we publish for clients to send messages to IncomingHandler.
-     */
-    final Messenger mMessenger = new Messenger(new MainActivity.IncomingHandler());
-
-    Switch mSwitch;
 
     @Override
     protected void onStart() {
         super.onStart();
+
+        mContext = this;
 
         if (ContextCompat.checkSelfPermission(getApplicationContext(),
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -80,10 +85,11 @@ public class MainActivity extends AppCompatActivity {
 
         fragment = (MapViewFragment) getSupportFragmentManager().findFragmentById(R.id.locationFragment);
 
-        mSwitch = (Switch) findViewById(R.id.GPS_switch);
+        mGPSTrackingSwitch = (Switch) findViewById(R.id.GPS_switch);
+        mLoginSwitch = (Switch) findViewById(R.id.loginSwitch);
         final Activity mActivity = this;
 
-        mSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        mGPSTrackingSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     startService(new Intent(mActivity, GPSTracking.class));
@@ -100,6 +106,40 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        checkUserDataExist();
+        mLoginSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    startActivity(new Intent(mActivity, LoginActivity.class));
+                } else {
+                    deleteFile("cookie");
+                    if(deleteFile("userData")) {
+                        Toast.makeText(getApplicationContext(), R.string.user_logout, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkUserDataExist();
+    }
+
+    private void checkUserDataExist() {
+        File cookieFile = new File(getApplicationContext().getFilesDir() + "/cookie");
+        File userDataFail = new File(getApplicationContext().getFilesDir() + "/userData");
+        if (cookieFile.exists()) {
+            //TODO check cookie has valid session
+            mLoginSwitch.setChecked(true);
+        } else if (userDataFail.exists()) {
+            //TODO login for valid cookie
+            mLoginSwitch.setChecked(true);
+        } else {
+            mLoginSwitch.setChecked(false);
+        }
     }
 
     private void sayHello() {
@@ -108,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Create and send a message to the service, using a supported 'what' value
-        Message msg = Message.obtain(null, MainActivity.MSG_SAY_HELLO, 0, 0);
+        Message msg = Message.obtain(null, MSG_SAY_HELLO, 0, 0);
         msg.replyTo = mMessenger;
         try {
             mService.send(msg);
@@ -128,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case MainActivity.MSG_LOCATION_DATA:
+                case MSG_LOCATION_DATA:
                     Location location = (Location) msg.obj;
                     //Toast.makeText(getApplicationContext(), (String.valueOf(location.getLatitude()) + "\n" + String.valueOf(location.getLongitude())), Toast.LENGTH_SHORT).show();
                     fragment.updateLocation(location);
@@ -138,6 +178,4 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
-
 }

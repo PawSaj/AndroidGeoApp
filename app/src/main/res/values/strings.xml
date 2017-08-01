@@ -3,4 +3,26 @@
     <string name="edit_message">Enter the message</string>
     <string name="button_send">Send</string>
     <string name="tracking">GPS tracking</string>
+    <string name="login_info">Welcome</string>
+    <string name="password">Enter the password</string>
+    <string name="user_name">Enter your user name</string>
+    <string name="login_buton_text">Login</string>
+    <string name="register_suggestion">Don\'t have an account? Click here to register for free!</string>
+    <string name="password_confirm">Confirm password</string>
+    <string name="register_button">Register</string>
+    <string name="login_success">Successful login</string>
+    <string name="login_failed">Login failed. Please correct inserted data!</string>
+    <string name="no_internet_connection">No internet connection!</string>
+    <string name="registration_filed">Registration failed. There is probably a user with the given name!</string>
+    <string name="passwords_dont_match">Passwords don\'t match1</string>
+    <string name="external_storage_write_problem">Error while writing external storage file! The data will not be saved!</string>
+    <string name="internal_storage_write_problem">Error while writing internal storage file! The data will not be saved!</string>
+    <string name="internal_storage_close_problem">Error while closing internal storage file! The data will not be saved!</string>
+    <string name="external_storage_close_problem">Error while closing external storage file! The data will not be saved!</string>
+    <string name="external_storage_create_problem">Error while creating or open external storage file! The data will not be saved!</string>
+    <string name="internal_storage_create_problem">Error while creating or open internal storage file! The data will not be saved!</string>
+    <string name="server_connection">Server Connection</string>
+    <string name="tracking_started">Tracking started</string>
+    <string name="tracking_stopped">Tracking stopped</string>
+    <string name="user_logout">User logout</string>
 </resources>

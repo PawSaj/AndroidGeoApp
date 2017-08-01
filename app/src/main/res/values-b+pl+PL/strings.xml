@@ -3,4 +3,11 @@
     <string name="edit_message">Wpisz wiadomość</string>
     <string name="button_send">Wyślij</string>
     <string name="tracking">śledzenie GPS</string>
+    <string name="login_buton_text">Zaloguj</string>
+    <string name="login_info">Witaj!</string>
+    <string name="password">Wpisz hasło</string>
+    <string name="user_name">Wpisz nazwę użytkownika</string>
+    <string name="password_confirm">Potwierdź hasło</string>
+    <string name="register_button">Zarejestruj sie</string>
+    <string name="register_suggestion">Nie masz konta? Kliknij tutaj, żeby zarejestrować się za darmo!</string>
 </resources>

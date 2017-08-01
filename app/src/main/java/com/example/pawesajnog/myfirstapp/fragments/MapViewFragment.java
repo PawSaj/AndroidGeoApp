@@ -1,4 +1,4 @@
-package com.example.pawesajnog.myfirstapp;
+package com.example.pawesajnog.myfirstapp.fragments;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.pawesajnog.myfirstapp.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;

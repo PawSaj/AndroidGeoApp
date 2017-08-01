@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="login_failed">Logowanie nieudane. Popraw wpisane dane!</string>
+    <string name="login_success">Logowanie zakończone powodzeniem!</string>
+    <string name="no_internet_connection">Brak połączenia z internetem!</string>
+    <string name="passwords_dont_match">Hasła nie pasują do siebie!</string>
+    <string name="registration_filed">Rejestracja nieudana. Prawdopodobnie istnieje użytkownik z podaną nazwą.</string>
+    <string name="server_connection">Połączenie z serwerem</string>
+    <string name="tracking_started">Śledzenie włączone</string>
+    <string name="tracking_stopped">Śledzenie wyłączone</string>
+    <string name="user_logout">Użytkownik wylogowany</string>
+</resources>

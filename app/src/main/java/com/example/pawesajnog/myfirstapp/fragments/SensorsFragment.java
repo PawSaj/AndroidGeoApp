@@ -1,4 +1,4 @@
-package com.example.pawesajnog.myfirstapp;
+package com.example.pawesajnog.myfirstapp.fragments;
 
 import android.app.Activity;
 import android.support.v4.app.Fragment;
@@ -14,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.pawesajnog.myfirstapp.R;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.LegendRenderer;
 import com.jjoe64.graphview.series.DataPoint;
