@@ -25,6 +25,8 @@ import android.widget.Toast;
 import com.example.pawesajnog.myfirstapp.R;
 import com.example.pawesajnog.myfirstapp.fragments.MapViewFragment;
 import com.example.pawesajnog.myfirstapp.services.GPSTracking;
+import com.example.pawesajnog.myfirstapp.services.LogoutService;
+import com.example.pawesajnog.myfirstapp.services.SendFileService;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        startService(new Intent(this, SendFileService.class));
 
         mContext = this;
 
@@ -113,6 +116,7 @@ public class MainActivity extends AppCompatActivity {
                 if (isChecked) {
                     startActivity(new Intent(mActivity, LoginActivity.class));
                 } else {
+                    startService(new Intent(mActivity, LogoutService.class));
                     deleteFile("cookie");
                     if(deleteFile("userData")) {
                         Toast.makeText(getApplicationContext(), R.string.user_logout, Toast.LENGTH_SHORT).show();
@@ -126,6 +130,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         checkUserDataExist();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        stopService(new Intent(this, GPSTracking.class));
     }
 
     private void checkUserDataExist() {

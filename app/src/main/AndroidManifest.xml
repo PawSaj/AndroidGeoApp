@@ -33,10 +33,13 @@
         <service android:name=".services.GPSTracking" />
 
         <service android:name=".services.LoginService" />
-
         <activity
             android:name=".activities.LoginActivity"
             android:theme="@style/Theme.AppCompat.Dialog" />
+        <service android:name=".services.LogoutService" />
+
+        <service android:name=".services.SendFileService" />
+
         <service android:name=".services.RegistrationService" />
         <activity
             android:name=".activities.RegistrationActivity"

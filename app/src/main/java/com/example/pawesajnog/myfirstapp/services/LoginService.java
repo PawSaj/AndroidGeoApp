@@ -19,7 +19,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.StringRequest;
-import com.example.pawesajnog.myfirstapp.MySingleton;
+import com.example.pawesajnog.myfirstapp.volleyConfig.MySingleton;
 import com.example.pawesajnog.myfirstapp.Person;
 
 import java.io.BufferedReader;
@@ -31,6 +31,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.example.pawesajnog.myfirstapp.StaticValues.ACTION_LOGGED;
 import static com.example.pawesajnog.myfirstapp.StaticValues.LOGIN_INFO;
 import static com.example.pawesajnog.myfirstapp.StaticValues.LOGIN_URL;
 import static com.example.pawesajnog.myfirstapp.StaticValues.MSG_SAY_HELLO;
@@ -101,7 +102,6 @@ public class LoginService extends Service {
                 if ("login successful".equals(response)) {
                     Log.i("login_info", response);
                     saveFile("userData", person.toString());
-
                     if(replyMessanger!=null) {
                         Message message = Message.obtain(null, LOGIN_INFO, "success");
                         try {
@@ -110,6 +110,9 @@ public class LoginService extends Service {
                             e.printStackTrace();
                         }
                     }
+
+                    Intent intent = new Intent(ACTION_LOGGED);
+                    sendBroadcast(intent);
 
 
                 } else {
@@ -171,21 +174,6 @@ public class LoginService extends Service {
             FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
             fos.write(data.getBytes());
             fos.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            FileInputStream in = openFileInput(filename);
-            InputStreamReader inputStreamReader = new InputStreamReader(in);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line);
-                sb.append("\n");
-            }
-            Log.i("readed_file", sb.toString());
-            in.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -25,4 +25,5 @@
     <string name="tracking_started">Tracking started</string>
     <string name="tracking_stopped">Tracking stopped</string>
     <string name="user_logout">User logout</string>
+    <string name="filed_to_send_file">Filed to send file!</string>
 </resources>

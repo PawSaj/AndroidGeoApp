@@ -25,7 +25,10 @@ import com.example.pawesajnog.myfirstapp.services.LoginService;
 import com.example.pawesajnog.myfirstapp.Person;
 import com.example.pawesajnog.myfirstapp.R;
 
+import static com.example.pawesajnog.myfirstapp.StaticValues.ACTION_LOGGED;
+import static com.example.pawesajnog.myfirstapp.StaticValues.ACTION_NEW_MSG;
 import static com.example.pawesajnog.myfirstapp.StaticValues.LOGIN_INFO;
+import static com.example.pawesajnog.myfirstapp.StaticValues.MSG_FIELD;
 import static com.example.pawesajnog.myfirstapp.StaticValues.MSG_SAY_HELLO;
 import static com.example.pawesajnog.myfirstapp.StaticValues.PERSON;
 

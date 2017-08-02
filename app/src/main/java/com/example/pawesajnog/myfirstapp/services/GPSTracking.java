@@ -35,6 +35,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import static com.example.pawesajnog.myfirstapp.StaticValues.ACTION_NEW_MSG;
+import static com.example.pawesajnog.myfirstapp.StaticValues.MSG_FIELD;
 import static com.example.pawesajnog.myfirstapp.StaticValues.MSG_LOCATION_DATA;
 import static com.example.pawesajnog.myfirstapp.StaticValues.MSG_SAY_HELLO;
 
@@ -189,6 +191,10 @@ public class GPSTracking extends Service
             Log.d(TAG, "Error while closing external storage file");
             Toast.makeText(getApplicationContext(), R.string.external_storage_close_problem, Toast.LENGTH_LONG).show();
         }
+
+        Intent intent = new Intent(ACTION_NEW_MSG);
+        intent.putExtra(MSG_FIELD, filename);
+        sendBroadcast(intent);
     }
 
     private void setLocationLocationRequest() {
